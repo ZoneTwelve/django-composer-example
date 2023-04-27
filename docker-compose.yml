@@ -5,22 +5,22 @@ services:
     image: mysql:8.0
     volumes:
       - ./sql/mysql-data:/var/lib/mysql
-    env_file:
-      - .env
+      - ./sql/mysql-files:/var/lib/mysql-files
     ports:
       - "${DB_PORT:-3306}:3306"
     environment:
-      DB_USER: "${DB_USER}"
-      DB_PORT: "${DB_PORT:-3306}"
-      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
-      MYSQL_DATABASE: "${DB_DATABASE}"
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - TZ=Asia/Taipei
+    networks:
+      - default_network
   app:
     container_name: es_backend
     build: 
       context: ./app
       dockerfile: Dockerfile
       args:
-        DB_HOST: db
+        DB_HOST: "db"
         DB_USER: "${DB_USER}"
         DB_PASSWORD: "${DB_PASSWORD}"
         DB_SCHEMA: "${DB_DATABASE}"
@@ -33,3 +33,10 @@ services:
       - ./app/${APP_NAME}:/src
     ports:
       - "${APP_PORT:-8000}:8000"
+    networks:
+      - default_network
+
+networks:
+  default_network:
+    name: es_net
+    external: true
